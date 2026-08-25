@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { ClubProvider, useClub } from "@/lib/club-context";
 import { Sidebar, MobileNav } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
@@ -9,6 +10,13 @@ import { ShieldAlert } from "lucide-react";
 
 function Shell({ children }: { children: React.ReactNode }) {
   const { loading, error, signOut } = useClub();
+
+  // Service worker per le Web Push (registrazione idempotente)
+  useEffect(() => {
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/sw.js").catch(() => {});
+    }
+  }, []);
 
   if (error) {
     return (

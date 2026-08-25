@@ -3,9 +3,10 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  Bell, ChevronDown, LogOut, Plus, Search, FileText, Palette,
+  Bell, BellRing, ChevronDown, LogOut, Plus, Search, FileText, Palette,
   CheckSquare, Upload, Trophy, UserPlus,
 } from "lucide-react";
+import { NotificationSettingsDialog } from "./notification-settings";
 import { supabase } from "@/lib/supabase/client";
 import { useClub } from "@/lib/club-context";
 import { entityUrl } from "@/lib/activity";
@@ -42,13 +43,19 @@ export function Topbar() {
   const [userOpen, setUserOpen] = useState(false);
   const [bellOpen, setBellOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
+  const [notifSettingsOpen, setNotifSettingsOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
   const createRef = useClickOutside(() => setCreateOpen(false));
   const userRef = useClickOutside(() => setUserOpen(false));
   const bellRef = useClickOutside(() => setBellOpen(false));
 
-  const unread = notifications.filter((n) => !n.read_at).length;
+  // Rispetta le preferenze dell'utente anche nella campanella
+  const prefs = profile?.notification_prefs ?? {};
+  const visibleNotifications = notifications.filter(
+    (n) => prefs.enabled !== false && prefs.types?.[n.type] !== false
+  );
+  const unread = visibleNotifications.filter((n) => !n.read_at).length;
 
   async function loadNotifications() {
     if (!userId) return;
@@ -175,10 +182,10 @@ export function Topbar() {
                   )}
                 </div>
                 <div className="max-h-96 overflow-y-auto p-1">
-                  {notifications.length === 0 && (
+                  {visibleNotifications.length === 0 && (
                     <p className="px-3 py-6 text-center text-xs text-muted">Nessuna notifica</p>
                   )}
-                  {notifications.map((n) => (
+                  {visibleNotifications.map((n) => (
                     <button
                       key={n.id}
                       onClick={() => openNotification(n)}
@@ -213,8 +220,17 @@ export function Topbar() {
                   <p className="text-[11px] text-muted">{role?.name}</p>
                 </div>
                 <button
+                  onClick={() => {
+                    setUserOpen(false);
+                    setNotifSettingsOpen(true);
+                  }}
+                  className="mt-1 flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-[13px] hover:bg-background cursor-pointer"
+                >
+                  <BellRing className="h-4 w-4 text-muted" /> Impostazioni notifiche
+                </button>
+                <button
                   onClick={signOut}
-                  className="mt-1 flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-[13px] text-danger hover:bg-danger-soft cursor-pointer"
+                  className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-[13px] text-danger hover:bg-danger-soft cursor-pointer"
                 >
                   <LogOut className="h-4 w-4" /> Esci
                 </button>
@@ -225,6 +241,10 @@ export function Topbar() {
       </header>
 
       <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />
+      <NotificationSettingsDialog
+        open={notifSettingsOpen}
+        onClose={() => setNotifSettingsOpen(false)}
+      />
     </>
   );
 }

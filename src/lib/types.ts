@@ -22,6 +22,13 @@ export interface Profile {
   id: string;
   full_name: string;
   avatar_url: string | null;
+  notification_prefs?: NotificationPrefs;
+}
+
+// Preferenze notifiche: chiave assente = attiva (modello opt-out)
+export interface NotificationPrefs {
+  enabled?: boolean;
+  types?: Partial<Record<NotificationType, boolean>>;
 }
 
 export interface Club {

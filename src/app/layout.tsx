@@ -18,6 +18,20 @@ export const metadata: Metadata = {
     template: "%s · RSB Club OS",
   },
   description: "Club Content & Operations OS — powered by AUVI",
+  manifest: "/manifest.webmanifest",
+  icons: {
+    icon: "/icon-192.png",
+    apple: "/apple-touch-icon.png",
+  },
+  appleWebApp: {
+    capable: true,
+    title: "RSB Club OS",
+    statusBarStyle: "default",
+  },
+};
+
+export const viewport = {
+  themeColor: "#8b1e2d",
 };
 
 export default function RootLayout({

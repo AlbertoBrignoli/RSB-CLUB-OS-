@@ -18,9 +18,17 @@ export function fmtDate(d: string | Date | null | undefined, pattern = "d MMM yy
   return format(new Date(d), pattern, { locale: it });
 }
 
+// Orari sempre in ora italiana (il club è a Roma), qualunque sia il fuso del dispositivo.
 export function fmtDateTime(d: string | Date | null | undefined) {
   if (!d) return "—";
-  return format(new Date(d), "d MMM yyyy · HH:mm", { locale: it });
+  const date = new Date(d);
+  const day = new Intl.DateTimeFormat("it-IT", {
+    day: "numeric", month: "short", year: "numeric", timeZone: "Europe/Rome",
+  }).format(date);
+  const time = new Intl.DateTimeFormat("it-IT", {
+    hour: "2-digit", minute: "2-digit", timeZone: "Europe/Rome",
+  }).format(date);
+  return `${day} · ${time}`;
 }
 
 export function fmtTime(t: string | null | undefined) {
@@ -121,6 +129,22 @@ export const MATCH_EVENT_LABEL: Record<MatchEventType, string> = {
   sub_out: "Esce",
   penalty_scored: "Rigore segnato",
   penalty_missed: "Rigore sbagliato",
+};
+
+export const NOTIFICATION_TYPE_LABEL: Record<
+  import("./types").NotificationType,
+  { label: string; desc: string }
+> = {
+  mention:          { label: "Menzioni",              desc: "Quando qualcuno ti menziona con @" },
+  task_assigned:    { label: "Task assegnati",        desc: "Quando ti viene assegnato un task" },
+  graphic_assigned: { label: "Richieste grafiche",    desc: "Quando ti viene assegnata una grafica da produrre" },
+  graphic_ready:    { label: "Grafiche pronte",       desc: "Quando una grafica richiesta va in review" },
+  content_review:   { label: "Contenuti in review",   desc: "Quando un contenuto aspetta la tua approvazione" },
+  content_approved: { label: "Contenuti approvati",   desc: "Quando un tuo contenuto viene approvato" },
+  deadline:         { label: "Scadenze",              desc: "Promemoria sulle scadenze imminenti" },
+  upcoming_match:   { label: "Partite",               desc: "Nuove partite e aggiornamenti del calendario" },
+  media_uploaded:   { label: "Nuovi media",           desc: "Quando vengono caricati nuovi media" },
+  status_change:    { label: "Cambi di stato",        desc: "Aggiornamenti di stato su grafiche e contenuti" },
 };
 
 export const MEDIA_CATEGORIES = [
