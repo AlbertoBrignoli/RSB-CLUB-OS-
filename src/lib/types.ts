@@ -292,6 +292,20 @@ export interface ActivityEntry {
   actor?: Profile | null;
 }
 
+export interface StaffMember {
+  id: string;
+  club_id: string;
+  first_name: string;
+  last_name: string;
+  role_title: string;
+  phone: string | null;
+  email: string | null;
+  photo_url: string | null;
+  notes: string | null;
+  sort: number;
+  is_active: boolean;
+}
+
 export interface ContentTemplate {
   id: string;
   club_id: string;

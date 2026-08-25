@@ -12,8 +12,9 @@ import { PLAYER_STATUS, POSITIONS, POSITION_LABEL, cn, fmtDate, initials, player
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input, Select } from "@/components/ui/input";
-import { EmptyState, PageHeader, PageSkeleton } from "@/components/ui/misc";
+import { EmptyState, PageHeader, PageSkeleton, Tabs } from "@/components/ui/misc";
 import { PlayerFormDialog } from "@/components/players/player-form-dialog";
+import { StaffTab } from "@/components/players/staff-tab";
 
 export default function TeamPage() {
   return (
@@ -76,6 +77,9 @@ function TeamInner() {
   const [formOpen, setFormOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"" | PlayerStatus>("");
+  const [view, setView] = useState<"rosa" | "staff">(
+    searchParams.get("tab") === "staff" ? "staff" : "rosa"
+  );
 
   const load = useCallback(async () => {
     if (!club) return;
@@ -122,9 +126,14 @@ function TeamInner() {
   return (
     <div className="animate-fade-up">
       <PageHeader
-        title="Squad Overview"
-        subtitle={`${players.length} ${players.length === 1 ? "giocatore" : "giocatori"} in rosa — ${club?.name ?? ""}`}
+        title={view === "rosa" ? "Squad Overview" : "Staff"}
+        subtitle={
+          view === "rosa"
+            ? `${players.length} ${players.length === 1 ? "giocatore" : "giocatori"} in rosa — ${club?.name ?? ""}`
+            : `Staff tecnico e dirigenziale — ${club?.name ?? ""}`
+        }
         action={
+          view === "rosa" &&
           can("players.manage") && (
             <Button variant="primary" onClick={() => setFormOpen(true)}>
               <Plus className="h-3.5 w-3.5" /> Add Player
@@ -133,7 +142,19 @@ function TeamInner() {
         }
       />
 
-      {players.length > 0 && (
+      <Tabs
+        className="mb-6"
+        tabs={[
+          { key: "rosa", label: "Rosa", count: players.length },
+          { key: "staff", label: "Staff" },
+        ]}
+        active={view}
+        onChange={(k) => setView(k as "rosa" | "staff")}
+      />
+
+      {view === "staff" && <StaffTab />}
+
+      {view === "rosa" && players.length > 0 && (
         <div className="mb-6 flex flex-wrap items-center gap-2">
           <div className="relative w-full max-w-xs">
             <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted/70" />
@@ -157,7 +178,7 @@ function TeamInner() {
         </div>
       )}
 
-      {players.length === 0 ? (
+      {view === "rosa" && (players.length === 0 ? (
         <EmptyState
           icon={<Users />}
           title="La rosa è ancora vuota"
@@ -198,7 +219,7 @@ function TeamInner() {
             );
           })}
         </div>
-      )}
+      ))}
 
       <PlayerFormDialog open={formOpen} onClose={closeForm} onSaved={load} />
     </div>
