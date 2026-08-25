@@ -124,7 +124,7 @@ export const MATCH_EVENT_LABEL: Record<MatchEventType, string> = {
 };
 
 export const MEDIA_CATEGORIES = [
-  "portrait", "training", "match", "celebration", "action", "social", "sponsor", "media-day",
+  "portrait", "training", "match", "celebration", "action", "social", "sponsor", "media-day", "logo",
 ] as const;
 
 export function playerName(p: { first_name: string; last_name: string } | null | undefined) {

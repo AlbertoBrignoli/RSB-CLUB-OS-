@@ -21,6 +21,7 @@ const TABS = [
   { key: "training", label: "Training" },
   { key: "events", label: "Events" },
   { key: "graphics", label: "Graphics" },
+  { key: "logos", label: "Loghi" },
   { key: "videos", label: "Videos" },
   { key: "sponsors", label: "Sponsors" },
 ] as const;
@@ -41,6 +42,7 @@ function inTab(m: MediaItem, tab: TabKey): boolean {
     case "training": return m.category === "training";
     case "events": return m.category === "media-day" || m.category === "celebration";
     case "graphics": return m.kind === "graphic";
+    case "logos": return m.category === "logo";
     case "videos": return m.kind === "video";
     case "sponsors": return m.category === "sponsor";
     default: return true;
