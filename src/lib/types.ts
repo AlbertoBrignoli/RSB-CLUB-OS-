@@ -5,7 +5,7 @@ export type PlayerStatus = "available" | "injured" | "suspended" | "unavailable"
 export type MatchStatus = "upcoming" | "live" | "finished" | "postponed" | "cancelled";
 export type MatchEventType =
   | "goal" | "own_goal" | "assist" | "yellow_card" | "red_card"
-  | "sub_in" | "sub_out" | "penalty_scored" | "penalty_missed";
+  | "sub_in" | "sub_out" | "penalty_scored" | "penalty_missed" | "penalty_saved";
 export type MediaKind = "photo" | "video" | "graphic" | "document";
 export type ContentStatus =
   | "idea" | "planned" | "copy" | "graphic_requested" | "in_production"
@@ -115,6 +115,9 @@ export interface Match {
   status: MatchStatus;
   our_score: number | null;
   opponent_score: number | null;
+  ht_our_score: number | null;
+  ht_opponent_score: number | null;
+  formation: string | null;
   notes: string | null;
   competition?: Competition | null;
 }
@@ -135,6 +138,7 @@ export interface MatchLineupEntry {
   player_id: string;
   club_id: string;
   is_starting: boolean;
+  slot: number | null;
   player?: Player | null;
 }
 

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -30,9 +31,20 @@ export function Sidebar() {
   return (
     <aside className="fixed inset-y-0 left-0 z-30 hidden w-56 flex-col border-r border-line bg-surface lg:flex">
       <div className="flex items-center gap-2.5 px-4 py-4">
-        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand text-white">
-          <Shield className="h-4.5 w-4.5" />
-        </span>
+        {club?.logo_url ? (
+          <Image
+            src={club.logo_url}
+            alt={club.name}
+            width={40}
+            height={40}
+            unoptimized
+            className="h-10 w-10 shrink-0 rounded-xl object-contain"
+          />
+        ) : (
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand text-white">
+            <Shield className="h-4.5 w-4.5" />
+          </span>
+        )}
         <div className="min-w-0">
           <p className="truncate text-[13px] font-semibold leading-tight">
             {club?.name ?? "Club OS"}

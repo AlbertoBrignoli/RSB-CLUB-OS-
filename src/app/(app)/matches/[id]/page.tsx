@@ -25,6 +25,7 @@ import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Avatar, EmptyState, PageSkeleton, Tabs } from "@/components/ui/misc";
 import { CommentsSection } from "@/components/shared/comments-section";
 import { MatchFormDialog } from "@/components/matches/match-form-dialog";
+import { LivePanel } from "@/components/matches/live-panel";
 import { MatchContentTab } from "@/components/matches/match-content-tab";
 import { MatchMediaTab } from "@/components/matches/match-media-tab";
 import { MatchResultTab } from "@/components/matches/match-result-tab";
@@ -243,6 +244,16 @@ export default function MatchCenterPage() {
         onChange={setTab}
         tabs={[
           { key: "overview", label: "Overview" },
+          {
+            key: "live",
+            label: match.status === "live" ? (
+              <span className="inline-flex items-center gap-1.5">
+                <span className="h-1.5 w-1.5 rounded-full bg-danger animate-pulse" /> Live
+              </span>
+            ) : (
+              "Live"
+            ),
+          },
           { key: "content", label: "Content", count: content.length },
           { key: "graphics", label: "Graphics", count: graphics.length },
           { key: "media", label: "Media", count: media.length },
@@ -323,6 +334,10 @@ export default function MatchCenterPage() {
             </CardBody>
           </Card>
         </div>
+      )}
+
+      {tab === "live" && (
+        <LivePanel match={match} players={players} events={events} onReload={load} />
       )}
 
       {tab === "content" && (

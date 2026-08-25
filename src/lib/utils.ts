@@ -129,6 +129,7 @@ export const MATCH_EVENT_LABEL: Record<MatchEventType, string> = {
   sub_out: "Esce",
   penalty_scored: "Rigore segnato",
   penalty_missed: "Rigore sbagliato",
+  penalty_saved: "Rigore parato",
 };
 
 export const NOTIFICATION_TYPE_LABEL: Record<

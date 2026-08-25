@@ -12,7 +12,7 @@ import { useClub } from "@/lib/club-context";
 import type { ActivityEntry, ContentItem, Graphic, Match, MediaItem, Task } from "@/lib/types";
 import {
   CONTENT_STATUS, GRAPHIC_STATUS, PRIORITY, TASK_STATUS,
-  cn, daysUntil, fmtDate, fmtDateTime, fmtTime, matchLabel, playerName,
+  cn, daysUntil, fmtDate, fmtDateTime, fmtTime, playerName,
 } from "@/lib/utils";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -119,36 +119,81 @@ export default function DashboardPage() {
         {/* NEXT MATCH */}
         <Card className="lg:col-span-2 overflow-hidden">
           {nextMatch ? (
-            <div className="relative bg-gradient-to-br from-brand to-brand-strong p-6 text-white">
-              <div className="flex items-center justify-between text-[11px] font-medium uppercase tracking-widest text-white/70">
-                <span>Next Match · {nextMatch.competition?.name ?? "—"}</span>
-                <span>
-                  {daysUntil(nextMatch.kickoff_at) === 0
-                    ? "Oggi"
-                    : daysUntil(nextMatch.kickoff_at) === 1
-                    ? "Domani"
-                    : `${daysUntil(nextMatch.kickoff_at)} giorni alla partita`}
-                </span>
-              </div>
-              <p className="mt-4 text-2xl font-semibold leading-tight">
-                {matchLabel(nextMatch, club?.short_name ?? "RSB")}
-              </p>
-              <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[13px] text-white/80">
-                <span className="inline-flex items-center gap-1.5">
-                  <CalendarDays className="h-3.5 w-3.5" /> {fmtDateTime(nextMatch.kickoff_at)}
-                </span>
-                {nextMatch.venue && (
-                  <span className="inline-flex items-center gap-1.5">
-                    <MapPin className="h-3.5 w-3.5" /> {nextMatch.venue}
+            (() => {
+              const home = nextMatch.is_home
+                ? { name: club?.name ?? "RSB", logo: club?.logo_url ?? null }
+                : { name: nextMatch.opponent, logo: nextMatch.opponent_logo_url };
+              const away = nextMatch.is_home
+                ? { name: nextMatch.opponent, logo: nextMatch.opponent_logo_url }
+                : { name: club?.name ?? "RSB", logo: club?.logo_url ?? null };
+              const TeamSide = ({ team }: { team: { name: string; logo: string | null } }) => (
+                <div className="flex min-w-0 flex-1 flex-col items-center gap-2 text-center">
+                  <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/95 p-1.5 shadow-lg sm:h-20 sm:w-20">
+                    {team.logo ? (
+                      <Image
+                        src={team.logo}
+                        alt={team.name}
+                        width={72}
+                        height={72}
+                        unoptimized
+                        className="h-full w-full object-contain"
+                      />
+                    ) : (
+                      <Trophy className="h-7 w-7 text-brand/50" />
+                    )}
                   </span>
-                )}
-              </div>
-              <Link href={`/matches/${nextMatch.id}`}>
-                <Button className="mt-5 border-0 bg-white/15 text-white hover:bg-white/25">
-                  Apri Match Center <ArrowRight className="h-3.5 w-3.5" />
-                </Button>
-              </Link>
-            </div>
+                  <p className="w-full truncate text-[13px] font-semibold leading-tight sm:text-[15px]">
+                    {team.name}
+                  </p>
+                </div>
+              );
+              return (
+                <div className="relative bg-gradient-to-br from-brand to-brand-strong p-6 text-white">
+                  <div className="flex items-center justify-between text-[11px] font-medium uppercase tracking-widest text-white/70">
+                    <span>Next Match · {nextMatch.competition?.name ?? "—"}</span>
+                    <span className="font-semibold text-accent">
+                      {daysUntil(nextMatch.kickoff_at) === 0
+                        ? "Oggi"
+                        : daysUntil(nextMatch.kickoff_at) === 1
+                        ? "Domani"
+                        : `${daysUntil(nextMatch.kickoff_at)} giorni alla partita`}
+                    </span>
+                  </div>
+
+                  <div className="mt-5 flex items-center justify-center gap-3 sm:gap-6">
+                    <TeamSide team={home} />
+                    <div className="flex flex-col items-center gap-1">
+                      <span className="text-xl font-bold text-white/60 sm:text-2xl">VS</span>
+                      {nextMatch.matchday && (
+                        <span className="rounded-full bg-white/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide">
+                          {nextMatch.matchday} giornata
+                        </span>
+                      )}
+                    </div>
+                    <TeamSide team={away} />
+                  </div>
+
+                  <div className="mt-5 flex flex-wrap items-center justify-center gap-x-5 gap-y-1.5 text-[13.5px] font-medium text-white/95">
+                    <span className="inline-flex items-center gap-1.5">
+                      <CalendarDays className="h-4 w-4 text-accent" /> {fmtDateTime(nextMatch.kickoff_at)}
+                    </span>
+                    {nextMatch.venue && (
+                      <span className="inline-flex items-center gap-1.5">
+                        <MapPin className="h-4 w-4 text-accent" /> {nextMatch.venue}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="mt-5 flex justify-center">
+                    <Link href={`/matches/${nextMatch.id}`}>
+                      <Button className="border-0 bg-white/15 text-white hover:bg-white/25">
+                        Apri Match Center <ArrowRight className="h-3.5 w-3.5" />
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+              );
+            })()
           ) : (
             <EmptyState
               icon={<Trophy />}

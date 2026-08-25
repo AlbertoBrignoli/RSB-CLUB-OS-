@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Goal, ListPlus, Sparkles, Trash2, Users } from "lucide-react";
+import { Goal, ListPlus, Sparkles, Trash2 } from "lucide-react";
 import { supabase } from "@/lib/supabase/client";
 import { useClub } from "@/lib/club-context";
 import { logActivity } from "@/lib/activity";
@@ -12,6 +12,7 @@ import { MATCH_EVENT_LABEL, cn, playerName } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Field, Input, Select } from "@/components/ui/input";
 import { EmptyState } from "@/components/ui/misc";
+import { FormationBoard } from "./formation-board";
 import { scoreTone } from "./match-row";
 
 const EVENT_TYPES = Object.keys(MATCH_EVENT_LABEL) as MatchEventType[];
@@ -24,8 +25,6 @@ const POST_MATCH_SUGGESTIONS: { slug: string; label: string; offsetDays: 0 | 1 }
   { slug: "photo_gallery", label: "Photo Gallery", offsetDays: 1 },
   { slug: "highlights", label: "Highlights", offsetDays: 1 },
 ];
-
-type LineupState = "none" | "starting" | "sub";
 
 export function MatchResultTab({
   match,
@@ -76,58 +75,6 @@ export function MatchResultTab({
       onReload();
     }
     setSavingScore(false);
-  }
-
-  // ---------- formazione ----------
-  const [lineupState, setLineupState] = useState<Record<string, LineupState>>({});
-  const [savingLineup, setSavingLineup] = useState(false);
-
-  useEffect(() => {
-    const s: Record<string, LineupState> = {};
-    for (const l of lineup) s[l.player_id] = l.is_starting ? "starting" : "sub";
-    setLineupState(s);
-  }, [lineup]);
-
-  function cycle(playerId: string) {
-    if (!canManage) return;
-    setLineupState((prev) => {
-      const cur = prev[playerId] ?? "none";
-      const next: LineupState = cur === "none" ? "starting" : cur === "starting" ? "sub" : "none";
-      return { ...prev, [playerId]: next };
-    });
-  }
-
-  const startingCount = Object.values(lineupState).filter((s) => s === "starting").length;
-  const subCount = Object.values(lineupState).filter((s) => s === "sub").length;
-
-  async function saveLineup() {
-    if (!club || !userId) return;
-    setSavingLineup(true);
-    const sb = supabase();
-    const rows = Object.entries(lineupState)
-      .filter(([, s]) => s !== "none")
-      .map(([playerId, s]) => ({
-        match_id: match.id,
-        player_id: playerId,
-        club_id: club.id,
-        is_starting: s === "starting",
-      }));
-    const { error: delErr } = await sb.from("match_lineup").delete().eq("match_id", match.id);
-    const { error: insErr } = rows.length
-      ? await sb.from("match_lineup").insert(rows)
-      : { error: null };
-    if (!delErr && !insErr) {
-      await logActivity({
-        clubId: club.id,
-        actorId: userId,
-        action: "updated",
-        entityType: "match",
-        entityId: match.id,
-        summary: `${profile?.full_name ?? "Qualcuno"} ha aggiornato la formazione vs ${match.opponent} (${startingCount} titolari, ${subCount} subentrati)`,
-      });
-      onReload();
-    }
-    setSavingLineup(false);
   }
 
   // ---------- eventi ----------
@@ -270,62 +217,8 @@ export function MatchResultTab({
         )}
       </section>
 
-      {/* FORMAZIONE */}
-      <section className="rounded-xl border border-line/70 bg-surface p-4">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <h3 className="flex items-center gap-1.5 text-[13px] font-semibold uppercase tracking-wide text-muted">
-            <Users className="h-3.5 w-3.5" /> Formazione
-          </h3>
-          <span className="text-[11.5px] text-muted">
-            {startingCount} titolari · {subCount} subentrati
-          </span>
-        </div>
-        {players.length === 0 ? (
-          <EmptyState
-            className="py-6"
-            title="Nessun giocatore in rosa"
-            description="Aggiungi i giocatori alla rosa per comporre la formazione."
-          />
-        ) : (
-          <>
-            <p className="mt-2 text-[11.5px] text-muted">
-              {canManage
-                ? "Clicca un giocatore per ciclare: fuori → Starting XI → subentrato."
-                : "Formazione della partita (sola lettura)."}
-            </p>
-            <div className="mt-3 flex flex-wrap gap-1.5">
-              {players.map((p) => {
-                const state = lineupState[p.id] ?? "none";
-                return (
-                  <button
-                    key={p.id}
-                    type="button"
-                    onClick={() => cycle(p.id)}
-                    disabled={!canManage}
-                    className={cn(
-                      "rounded-full border px-2.5 py-1 text-[11.5px] font-medium transition-colors",
-                      canManage ? "cursor-pointer" : "cursor-default",
-                      state === "starting" && "border-brand/40 bg-brand-soft text-brand",
-                      state === "sub" && "border-info/40 bg-info-soft text-info",
-                      state === "none" && "border-line text-muted"
-                    )}
-                  >
-                    {p.shirt_number != null && <span className="mr-1 opacity-60">{p.shirt_number}</span>}
-                    {playerName(p)}
-                    {state === "starting" && <span className="ml-1">· XI</span>}
-                    {state === "sub" && <span className="ml-1">· SUB</span>}
-                  </button>
-                );
-              })}
-            </div>
-            {canManage && (
-              <Button className="mt-3" onClick={saveLineup} loading={savingLineup}>
-                Salva formazione
-              </Button>
-            )}
-          </>
-        )}
-      </section>
+      {/* FORMAZIONE — lavagnetta tattica */}
+      <FormationBoard match={match} players={players} lineup={lineup} onReload={onReload} />
 
       {/* EVENTI */}
       <section className="rounded-xl border border-line/70 bg-surface p-4">
